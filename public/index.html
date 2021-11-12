@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/static/style.css" />
+    <!-- <script src="/static/index.js" defer></script> -->
+    <title>Document</title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="spinner"></div>
+      <div class="error" style="display: none"></div>
+      <div class="table" style="display: none">
+        <button id="refresh" class="gradient-button">Кнопище</button>
+        <table>
+          <thead>
+            <tr>
+              <th>Название книги</th>
+              <th>Автор</th>
+              <th>Жанр</th>
+              <th>Год выпуска</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <script>
+      const refreshButton = document.querySelector('#refresh');
+      const spinner = document.querySelector('.spinner');
+      const table = document.querySelector('.table');
+      const tbody = document.querySelector('tbody');
+      const error = document.querySelector('.error');
+
+      refreshButton.addEventListener('click', async () => {
+        refreshButton.setAttribute('disabled', 'true');
+        refreshButton.textContent = 'Загрузка...';
+
+        const response = await fetch('api/books');
+        const data = await response.json();
+
+        refreshButton.removeAttribute('disabled');
+        refreshButton.textContent = 'Кнопище';
+
+        if (response.status >= 400) {
+          error.style.display = 'block';
+          error.textContent = data.message;
+        } else {
+          renderBooks(data);
+        }
+      });
+
+      async function fetchBooks() {
+        const response = await fetch('api/books');
+        const data = await response.json();
+
+        spinner.style.display = 'none';
+        if (/^[45]/.test(response.status)) {
+          error.style.display = 'block';
+          error.textContent = data.message;
+        } else {
+          table.style.display = 'table';
+          error.style.display = 'none';
+          renderBooks(data);
+        }
+      }
+
+      function renderBooks(books) {
+        tbody.innerHTML = '';
+        for (const book of books) {
+          tbody.innerHTML += `
+                <tr>
+                  <td>${book.name}</td>
+                  <td>${book.author}</td>
+                  <td>${book.genre}</td>
+                  <td>${book.year}</td>
+                </tr>
+              `;
+        }
+      }
+
+      fetchBooks();
+    </script>
+  </body>
+</html>
