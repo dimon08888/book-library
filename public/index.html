@@ -13,14 +13,44 @@
       <div class="spinner"></div>
       <div class="error" style="display: none"></div>
       <div class="table" style="display: none">
-        <button id="refresh" class="gradient-button">Кнопище</button>
-        <table>
+        <div class="button-inner">
+          <button id="refresh" class="gradient-button">Refresh books</button>
+          <button id="delete-books" class="delete-button" disabled>Delete book</button>
+        </div>
+        <fieldset>
+          <legend>Add new book</legend>
+          <form id="add-book-form">
+            <div class="input-inner">
+              <input required type="text" name="name" placeholder="Title" />
+              <input required type="text" name="author" placeholder="Author" />
+              <input required type="text" name="genre" placeholder="Genre" />
+              <input required type="number" name="year" placeholder="Year" />
+              <button class="submit-button">Create book</button>
+            </div>
+          </form>
+        </fieldset>
+
+        <table class="books">
           <thead>
             <tr>
-              <th>Название книги</th>
-              <th>Автор</th>
-              <th>Жанр</th>
-              <th>Год выпуска</th>
+              <th></th>
+              <th>Title of the book</th>
+              <th>Author</th>
+              <th>Genre</th>
+              <th>Release year</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+
+        <table class="authors">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Name</th>
+              <th>Nationality</th>
+              <th>Date of birth</th>
+              <th>Date of death</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -31,18 +61,62 @@
       const refreshButton = document.querySelector('#refresh');
       const spinner = document.querySelector('.spinner');
       const table = document.querySelector('.table');
-      const tbody = document.querySelector('tbody');
+      const tbody = document.querySelector('.books tbody');
+      const tbodyAuthors = document.querySelector('.authors tbody');
       const error = document.querySelector('.error');
+      const addBookForm = document.querySelector('#add-book-form');
+      const deleteBooksButton = document.querySelector('#delete-books');
+
+      // 0 - start of the line (NORMAL, first character)
+      // ^ - start of the line (NORMAL, first non whitespace character).
+      // $ - end of the line (NORMAL).
+      // gm - middle of the line (NORMAL).
+      // I - start of the line (INSERT).
+      // A - end of  the line (INSERT).
+
+      addBookForm.addEventListener('submit', async e => {
+        e.preventDefault();
+        const { name, author, genre, year } = addBookForm.elements;
+
+        const response = await fetch('api/books', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: name.value,
+            author: author.value,
+            genre: genre.value,
+            year: year.value,
+          }),
+        });
+        const book = await response.json();
+        if (response.status === 201) {
+          const response2 = await fetch('api/books');
+          const books = await response2.json();
+          renderBooks(books);
+          addBookForm.reset();
+        }
+      });
+
+      // TODO: refactor duplicate code.
+      // TODO: confirm delete (modal).
+      // TODO: one checkbox in the <th> to select all books.
+
+      // TODO: update book.
+      // TODO: sort by columns.
+      // TODO: pagination.
+      // TODO: filters.
 
       refreshButton.addEventListener('click', async () => {
         refreshButton.setAttribute('disabled', 'true');
-        refreshButton.textContent = 'Загрузка...';
+        refreshButton.textContent = 'Loading...';
 
         const response = await fetch('api/books');
         const data = await response.json();
 
         refreshButton.removeAttribute('disabled');
-        refreshButton.textContent = 'Кнопище';
+        refreshButton.textContent = 'Refresh books';
 
         if (response.status >= 400) {
           error.style.display = 'block';
@@ -71,17 +145,63 @@
         tbody.innerHTML = '';
         for (const book of books) {
           tbody.innerHTML += `
-                <tr>
-                  <td>${book.name}</td>
-                  <td>${book.author}</td>
-                  <td>${book.genre}</td>
-                  <td>${book.year}</td>
-                </tr>
-              `;
+                 <tr>
+                   <td><input class="checkbox" type="checkbox" data-book-id="${book.id}"></td>
+                   <td>${book.name}</td>
+                   <td>${book.author}</td>
+                   <td>${book.genre}</td>
+                   <td>${book.year}</td>
+                 </tr>
+               `;
         }
+
+        const checkboxBooks = document.querySelectorAll('.books .checkbox');
+        checkboxBooks.forEach(el =>
+          el.addEventListener('change', () => {
+            // prettier-ignore
+            deleteBooksButton.disabled = Array.from(checkboxBooks).every(el => !el.checked);
+          }),
+        );
+
+        deleteBooksButton.addEventListener('click', async () => {
+          const ids = Array.from(checkboxBooks)
+            .filter(el => el.checked)
+            .map(el => el.dataset.bookId);
+          const query = ids.map(id => `id=${id}`).join('&');
+          const response = await fetch(`api/books/?${query}`, { method: 'DELETE' });
+          deleteBooksButton.disabled = 'true';
+
+          if (response.status === 204) {
+            const response2 = await fetch('api/books');
+            const books = await response2.json();
+            renderBooks(books);
+          }
+        });
       }
 
       fetchBooks();
+
+      function renderAuthors(authors) {
+        for (const author of authors) {
+          tbodyAuthors.innerHTML += `
+                 <tr>
+                   <td><input class="checkbox" type="checkbox" data-author-id="${author.id}"></td>
+                   <td>${author.name}</td>
+                   <td>${author.nationality}</td>
+                   <td>${author.dateofbirth}</td>
+                   <td>${author.dateofdeath}</td>
+                 </tr>
+               `;
+        }
+      }
+
+      async function fetchAuthors() {
+        const response = await fetch('api/authors');
+        const data = await response.json();
+        renderAuthors(data);
+      }
+
+      fetchAuthors();
     </script>
   </body>
 </html>

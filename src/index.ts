@@ -18,14 +18,14 @@ app.get('/', (req, res) => {
 });
 
 app.get('/api/books', async (req, res) => {
-  if (Math.random() < 0.25) {
-    res
-      .status(429)
-      .send({ message: 'You are only allowed to send 60 requests per day.' });
-  } else {
-    const result = await pool.query('SELECT * FROM books');
-    res.send(result.rows);
-  }
+  // if (Math.random() < 0.25) {
+  //   res
+  //     .status(429)
+  //     .send({ message: 'You are only allowed to send 60 requests per day.' });
+  // } else {
+  const result = await pool.query('SELECT * FROM books');
+  res.send(result.rows);
+  // }
 });
 
 app.post('/api/books', async (req, res) => {
@@ -35,6 +35,18 @@ app.post('/api/books', async (req, res) => {
     [name, author, genre, year],
   );
   res.status(201).send(result.rows[0]);
+});
+
+app.delete('/api/books', async (req, res) => {
+  const { id } = req.query;
+  const ids = Array.isArray(id) ? id : [id];
+
+  const result = await pool.query(
+    'DELETE FROM books WHERE id IN (' + ids.map((_, i) => '$' + (i + 1)).join(', ') + ')',
+    ids,
+  );
+
+  res.status(204).send();
 });
 
 app.get('/api/books/:id', async (req, res) => {
@@ -84,6 +96,32 @@ app.delete('/api/books/:id', async (req, res) => {
   res.status(204).send();
 });
 
-app.listen(5000);
+app.get('/api/authors', async (req, res) => {
+  const result = await pool.query('SELECT * FROM authors');
+  res.send(result.rows);
+});
 
-// id, name, nationality, dateOfBirth, dateOfDeath
+app.post('/api/authors', async (req, res) => {
+  const name = req.body.name;
+  const nationality = req.body.nationality;
+  const dateofbirth = req.body.dateofbirth;
+  const dateofdeath = req.body.dateofdeath;
+  const result = await pool.query(
+    'INSERT INTO authors (name, nationality, dateofbirth, dateofdeath) VALUES ($1, $2, $3, $4) RETURNING *',
+    [name, nationality, dateofbirth, dateofdeath],
+  );
+
+  res.status(201).send(result.rows[0]);
+});
+
+app.delete('/api/authors/:id', async (req, res) => {
+  const id = req.params.id;
+  const result = await pool.query('DELETE FROM authors WHERE id = $1', [id]);
+
+  if (result.rowCount === 0) {
+    return res.status(404).send();
+  }
+  res.status(204).send();
+});
+
+app.listen(5000);

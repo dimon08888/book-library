@@ -1,15 +1,77 @@
 * {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-image: url(./library.jpg);
+  background-repeat: no-repeat;
+  background-size: cover;
 }
 
 .container {
-  display: grid;
-  place-items: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+legend {
+  margin: 0 auto;
+  color: #fff;
+  font-size: 20px;
+}
+
+fieldset {
+  background-color: rgba(0, 0, 0, 0.5);
+  margin-top: 10px;
+  padding: 10px 40px;
+  padding-bottom: 17px;
+}
+
+.add-book-form {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+input {
+  margin-left: 5px;
+  border-radius: 5px;
+  padding: 6px;
+}
+
+.checkbox {
+  cursor: pointer;
+}
+
+.checkbox:checked {
+  /* appearance: none; */
+  background-color: #ff0000;
+  border-color: #14cc95;
+}
+
+.submit-button {
+  background-color: #eff0ac;
+  margin-left: 5px;
+  padding: 6px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.submit-button:hover {
+  background: #14cc95;
+  transition: 0.5s;
+}
+
+.error {
+  color: red;
+  font-size: 25px;
 }
 
 table {
-  margin-top: 100px;
+  margin: 0 auto;
+  margin-top: 30px;
   font-size: 20px;
   border-radius: 10px;
   text-align: center;
@@ -26,6 +88,7 @@ th,
 td {
   border: 1px solid rgb(192, 186, 186);
 }
+
 th:first-child,
 td:first-child {
   text-align: left;
@@ -44,17 +107,27 @@ td {
   background: #eff0ac;
 }
 
-.gradient-button {
-  position: absolute;
-  top: 25px;
+.button-inner {
+  display: flex;
+  justify-content: center;
+}
+
+.gradient-button,
+.delete-button {
+  margin-top: 10px;
   color: #fff;
   padding: 20px 30px;
   border-radius: 10px;
   text-transform: uppercase;
   letter-spacing: 2px;
   background-image: linear-gradient(to right, #eff0ac 0%, #14cc95, #eff0ac);
-  box-shadow: 0 0 10px rgb(0, 0, 0.1);
   cursor: pointer;
+}
+
+.delete-button {
+  margin-left: 10px;
+  background-image: none;
+  background-color: rgba(0, 0, 0, 0.7);
 }
 
 gradient-button:hover {
@@ -72,6 +145,7 @@ gradient-button:hover {
   border-radius: 50%;
   animation: spinner 1s linear infinite;
 }
+
 @keyframes spinner {
   from {
     transform: rotate(0deg);
@@ -79,4 +153,9 @@ gradient-button:hover {
   to {
     transform: rotate(360deg);
   }
+}
+
+button:disabled {
+  filter: brightness(0.5);
+  cursor: default;
 }
