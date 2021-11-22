@@ -8,9 +8,9 @@ app.use(express.json());
 app.use('/static', express.static('public'));
 
 const pool = new Pool({
-  database: 'postgres',
-  user: 'postgres',
-  password: 'postgres',
+  database: process.env.DBNAME,
+  user: process.env.DBUSER,
+  password: process.env.DBPASSWORD,
 });
 
 app.get('/', (req, res) => {
