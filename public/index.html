@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="/static/style.css" />
+    <link rel="stylesheet" href="/static/main.css" />
     <!-- <script src="/static/index.js" defer></script> -->
     <title>Document</title>
   </head>
@@ -17,6 +17,20 @@
           <button id="refresh" class="gradient-button">Refresh books</button>
           <button id="delete-books" class="delete-button" disabled>Delete book</button>
         </div>
+
+        <div class="modal modal__hidden">
+          <div class="modal__overlay"></div>
+          <div class="modal__content">
+            <div class="modal__header">
+              <p>Want delete?</p>
+            </div>
+            <div class="modal__footer">
+              <button class="modal__button modal__cancel">Cancel</button>
+              <button class="modal__button modal__confirm">Yes</button>
+            </div>
+          </div>
+        </div>
+
         <fieldset>
           <legend>Add new book</legend>
           <form id="add-book-form">
@@ -33,7 +47,7 @@
         <table class="books">
           <thead>
             <tr>
-              <th></th>
+              <th><input class="checkbox-all" type="checkbox" /></th>
               <th>Title of the book</th>
               <th>Author</th>
               <th>Genre</th>
@@ -46,7 +60,7 @@
         <table class="authors">
           <thead>
             <tr>
-              <th></th>
+              <th><input class="checkbox-all" type="checkbox" /></th>
               <th>Name</th>
               <th>Nationality</th>
               <th>Date of birth</th>
@@ -66,6 +80,8 @@
       const error = document.querySelector('.error');
       const addBookForm = document.querySelector('#add-book-form');
       const deleteBooksButton = document.querySelector('#delete-books');
+
+      const checkboxSelectAll = document.querySelector('.books .checkbox-all');
 
       // 0 - start of the line (NORMAL, first character)
       // ^ - start of the line (NORMAL, first non whitespace character).
@@ -143,6 +159,7 @@
 
       function renderBooks(books) {
         tbody.innerHTML = '';
+
         for (const book of books) {
           tbody.innerHTML += `
                  <tr>
@@ -156,17 +173,43 @@
         }
 
         const checkboxBooks = document.querySelectorAll('.books .checkbox');
+
         checkboxBooks.forEach(el =>
           el.addEventListener('change', () => {
             // prettier-ignore
-            deleteBooksButton.disabled = Array.from(checkboxBooks).every(el => !el.checked);
+            deleteBooksButton.disabled = Array.from(checkboxBooks).every( el => !el.checked,);
           }),
         );
+      }
 
-        deleteBooksButton.addEventListener('click', async () => {
+      checkboxSelectAll.addEventListener('change', () => {
+        const checkboxBooks = document.querySelectorAll('.books .checkbox');
+        checkboxBooks.forEach(el => {
+          el.checked = checkboxSelectAll.checked;
+          el.dispatchEvent(new Event('change'));
+        });
+      });
+
+      deleteBooksButton.addEventListener('click', () => {
+        const checkboxBooks = document.querySelectorAll('.books .checkbox');
+
+        const modalConfirmButton = document.querySelector('.modal__confirm');
+        const modalCancelButton = document.querySelector('.modal__cancel');
+        const modal = document.querySelector('.modal');
+
+        modal.classList.remove('modal__hidden');
+
+        function onCancelClick() {
+          modal.classList.add('modal__hidden');
+          modalCancelButton.removeEventListener('click', onCancelClick);
+          modalConfirmButton.removeEventListener('click', onConfirmClick);
+        }
+
+        async function onConfirmClick() {
           const ids = Array.from(checkboxBooks)
             .filter(el => el.checked)
             .map(el => el.dataset.bookId);
+
           const query = ids.map(id => `id=${id}`).join('&');
           const response = await fetch(`api/books/?${query}`, { method: 'DELETE' });
           deleteBooksButton.disabled = 'true';
@@ -176,8 +219,13 @@
             const books = await response2.json();
             renderBooks(books);
           }
-        });
-      }
+
+          onCancelClick();
+        }
+
+        modalCancelButton.addEventListener('click', onCancelClick);
+        modalConfirmButton.addEventListener('click', onConfirmClick);
+      });
 
       fetchBooks();
 
