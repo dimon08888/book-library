@@ -20,15 +20,7 @@
 
         <div class="modal modal__hidden">
           <div class="modal__overlay"></div>
-          <div class="modal__content">
-            <div class="modal__header">
-              <p>Want delete?</p>
-            </div>
-            <div class="modal__footer">
-              <button class="modal__button modal__cancel">Cancel</button>
-              <button class="modal__button modal__confirm">Yes</button>
-            </div>
-          </div>
+          <div class="modal__content"></div>
         </div>
 
         <fieldset>
@@ -74,14 +66,23 @@
     <script>
       const refreshButton = document.querySelector('#refresh');
       const spinner = document.querySelector('.spinner');
+
       const table = document.querySelector('.table');
       const tbody = document.querySelector('.books tbody');
       const tbodyAuthors = document.querySelector('.authors tbody');
+
       const error = document.querySelector('.error');
       const addBookForm = document.querySelector('#add-book-form');
       const deleteBooksButton = document.querySelector('#delete-books');
-
       const checkboxSelectAll = document.querySelector('.books .checkbox-all');
+
+      const modal = document.querySelector('.modal');
+      const modalContent = document.querySelector('.modal__content');
+      const modalOverlay = document.querySelector('.modal__overlay');
+
+      modalOverlay.addEventListener('click', () => {
+        modal.classList.add('modal__hidden');
+      });
 
       // 0 - start of the line (NORMAL, first character)
       // ^ - start of the line (NORMAL, first non whitespace character).
@@ -116,10 +117,6 @@
       });
 
       // TODO: refactor duplicate code.
-      // TODO: confirm delete (modal).
-      // TODO: one checkbox in the <th> to select all books.
-
-      // TODO: update book.
       // TODO: sort by columns.
       // TODO: pagination.
       // TODO: filters.
@@ -161,18 +158,74 @@
         tbody.innerHTML = '';
 
         for (const book of books) {
-          tbody.innerHTML += `
+          tbody.innerHTML += /*html*/ `
                  <tr>
                    <td><input class="checkbox" type="checkbox" data-book-id="${book.id}"></td>
-                   <td>${book.name}</td>
+                   <td><button class="change-button" title='Change' aria-label="Change ${book.name}" data-book-id="${book.id}">${book.name}</button></td>
                    <td>${book.author}</td>
                    <td>${book.genre}</td>
                    <td>${book.year}</td>
                  </tr>
                `;
         }
-
+        const changeButtons = document.querySelectorAll('.books .change-button');
         const checkboxBooks = document.querySelectorAll('.books .checkbox');
+
+        changeButtons.forEach(button => {
+          button.addEventListener('click', async () => {
+            // 1. получить id
+            const id = button.dataset.bookId;
+
+            // 2. получить данные по id
+            const response = await fetch(`api/books/${id}`);
+
+            // 3. достать данные из запрос
+            const book = await response.json();
+
+            // 4. отрисовать данные в форму для изменения
+            modal.classList.remove('modal__hidden');
+
+            modalContent.innerHTML = /*html*/ `
+              <form id="add-book-form">
+                <div class="input-inner">
+                  <input required type="text" name="name" placeholder="Title" value="${book.name}" />
+                  <input required type="text" name="author" placeholder="Author" value="${book.author}" />
+                  <input required type="text" name="genre" placeholder="Genre" value="${book.genre}"/>
+                  <input required type="number" name="year" placeholder="Year" value="${book.year}"/>
+                  <button id="save-book" class="submit-button">Save</button>
+                </div>
+              </form>
+          `;
+            // 5.отправить изменения на сервер
+            const addBookForm = document.querySelector('#add-book-form');
+            addBookForm.addEventListener('submit', async e => {
+              e.preventDefault();
+              const { name, author, genre, year } = addBookForm.elements;
+              const response = await fetch(`api/books/${id}`, {
+                method: 'PATCH',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  name: name.value,
+                  author: author.value,
+                  genre: genre.value,
+                  year: year.value,
+                }),
+              });
+
+              modal.classList.add('modal__hidden');
+              if (response.status === 200) {
+                const response = await fetch('api/books');
+                const books = await response.json();
+                renderBooks(books);
+              }
+            });
+          });
+        });
+        // show modal
+        // with form filled with book details.
+        // and buttons to cancel or update that book.
 
         checkboxBooks.forEach(el =>
           el.addEventListener('change', () => {
@@ -193,14 +246,23 @@
       deleteBooksButton.addEventListener('click', () => {
         const checkboxBooks = document.querySelectorAll('.books .checkbox');
 
+        modal.classList.remove('modal__hidden');
+        modalContent.innerHTML = `
+          <div class="modal__header">
+            <p>Want delete?</p>
+          </div>
+          <div class="modal__footer">
+            <button class="modal__button modal__cancel">Cancel</button>
+            <button class="modal__button modal__confirm">Yes</button>
+          </div>
+        `;
+
         const modalConfirmButton = document.querySelector('.modal__confirm');
         const modalCancelButton = document.querySelector('.modal__cancel');
-        const modal = document.querySelector('.modal');
-
-        modal.classList.remove('modal__hidden');
 
         function onCancelClick() {
           modal.classList.add('modal__hidden');
+          modalContent.innerHTML = '';
           modalCancelButton.removeEventListener('click', onCancelClick);
           modalConfirmButton.removeEventListener('click', onConfirmClick);
         }
@@ -209,6 +271,9 @@
           const ids = Array.from(checkboxBooks)
             .filter(el => el.checked)
             .map(el => el.dataset.bookId);
+          // <p aria-label="" data-my-attribute="some value" data-my-value="dfd"></p>
+          // el.dataset { myAttribute: 'some value', myValue: 'dfd' }
+          // el.dataset.myAttribute
 
           const query = ids.map(id => `id=${id}`).join('&');
           const response = await fetch(`api/books/?${query}`, { method: 'DELETE' });

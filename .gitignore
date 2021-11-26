@@ -1,6 +1,7 @@
 node_modules
 .vscode
 .env
+.vim.md
 
 # sass generated files.
 public/*.css

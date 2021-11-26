@@ -1,0 +1,52 @@
+.submit-button {
+  background-color: #eff0ac;
+  margin-left: 5px;
+  padding: 6px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+
+  &:hover {
+    background: #14cc95;
+    transition: 0.5s;
+  }
+}
+
+.gradient-button,
+.delete-button {
+  margin-top: 10px;
+  color: #fff;
+  padding: 20px 30px;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  background-image: linear-gradient(to right, #eff0ac 0%, #14cc95, #eff0ac);
+  cursor: pointer;
+}
+
+.delete-button {
+  margin-left: 10px;
+  background-image: none;
+  background-color: rgba(0, 0, 0, 0.7);
+
+  &:disabled {
+    filter: brightness(0.5);
+    cursor: default;
+  }
+}
+
+.gradient-button:hover {
+  background-position: right center;
+}
+
+.change-button {
+  font-size: inherit;
+  border: none;
+  background-color: inherit;
+  cursor: pointer;
+  color: #094898;
+  font-weight: 500;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

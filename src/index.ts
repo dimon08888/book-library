@@ -23,7 +23,12 @@ app.get('/api/books', async (req, res) => {
   //     .status(429)
   //     .send({ message: 'You are only allowed to send 60 requests per day.' });
   // } else {
-  const result = await pool.query('SELECT * FROM books');
+  const result = await pool.query('SELECT * FROM books ORDER BY id');
+  // /api/books?ordering=name -> ORDER BY name ASC
+  // /api/books?ordering=-name -> ORDER BY name DESC
+
+  // ORDER BY field ASC
+  // ORDER BY field DESC
   res.send(result.rows);
   // }
 });
