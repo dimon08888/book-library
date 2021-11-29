@@ -40,16 +40,42 @@
           <thead>
             <tr>
               <th><input class="checkbox-all" type="checkbox" /></th>
-              <th>Title of the book</th>
-              <th>Author</th>
-              <th>Genre</th>
-              <th>Release year</th>
+              <th class="sortable">
+                <button class="sortable-button" data-field="name">
+                  Title of the book
+                </button>
+                <div class="sort-options hidden">
+                  <button class="sort-remove">↕</button>
+                  <button class="sort-toggle">↓</button>
+                </div>
+              </th>
+              <th class="sortable">
+                <button class="sortable-button" data-field="author">Author</button>
+                <div class="sort-options hidden">
+                  <button class="sort-remove">↕</button>
+                  <button class="sort-toggle">↓</button>
+                </div>
+              </th>
+              <th class="sortable">
+                <button class="sortable-button" data-field="genre">Genre</button>
+                <div class="sort-options hidden">
+                  <button class="sort-remove">↕</button>
+                  <button class="sort-toggle">↓</button>
+                </div>
+              </th>
+              <th class="sortable">
+                <button class="sortable-button" data-field="year">Release Year</button>
+                <div class="sort-options hidden">
+                  <button class="sort-remove">↕</button>
+                  <button class="sort-toggle">↓</button>
+                </div>
+              </th>
             </tr>
           </thead>
           <tbody></tbody>
         </table>
 
-        <table class="authors">
+        <!-- <table class="authors">
           <thead>
             <tr>
               <th><input class="checkbox-all" type="checkbox" /></th>
@@ -60,12 +86,13 @@
             </tr>
           </thead>
           <tbody></tbody>
-        </table>
+        </table> -->
       </div>
     </div>
     <script>
       const refreshButton = document.querySelector('#refresh');
       const spinner = document.querySelector('.spinner');
+      const sortables = document.querySelectorAll('.sortable');
 
       const table = document.querySelector('.table');
       const tbody = document.querySelector('.books tbody');
@@ -120,6 +147,58 @@
       // TODO: sort by columns.
       // TODO: pagination.
       // TODO: filters.
+
+      const ORDERING = {
+        ASC: '',
+        DESC: '-',
+      };
+
+      let orderingDirection = ORDERING.ASC;
+      let previousSortOptions = null;
+
+      sortables.forEach(th => {
+        const button = th.querySelector('.sortable-button');
+        const sortOptions = th.querySelector('.sort-options');
+        const removeButton = th.querySelector('.sort-remove');
+        const toggleButton = th.querySelector('.sort-toggle');
+        const orderingField = button.dataset.field;
+
+        button.addEventListener('click', async () => {
+          const response = await fetch(`api/books?ordering=${orderingField}`);
+          const books = await response.json();
+          renderBooks(books);
+
+          if (previousSortOptions) {
+            previousSortOptions.classList.add('hidden');
+          }
+
+          sortOptions.classList.remove('hidden');
+          previousSortOptions = sortOptions;
+        });
+
+        toggleButton.addEventListener('click', async () => {
+          orderingDirection =
+            orderingDirection === ORDERING.ASC ? ORDERING.DESC : ORDERING.ASC;
+          const response = await fetch(
+            `api/books?ordering=${orderingDirection}${orderingField}`,
+          );
+          const books = await response.json();
+          renderBooks(books);
+          toggleButton.textContent = orderingDirection === ORDERING.ASC ? '↓' : '↑';
+        });
+
+        removeButton.addEventListener('click', async () => {
+          orderingDirection = ORDERING.ASC;
+          toggleButton.textContent = '↓';
+          sortOptions.classList.add('hidden');
+          const response = await fetch('api/books');
+          const books = await response.json();
+          renderBooks(books);
+        });
+      });
+      // click
+      // ↕ '↓'
+      // ↕ '↑'
 
       refreshButton.addEventListener('click', async () => {
         refreshButton.setAttribute('disabled', 'true');
@@ -293,28 +372,6 @@
       });
 
       fetchBooks();
-
-      function renderAuthors(authors) {
-        for (const author of authors) {
-          tbodyAuthors.innerHTML += `
-                 <tr>
-                   <td><input class="checkbox" type="checkbox" data-author-id="${author.id}"></td>
-                   <td>${author.name}</td>
-                   <td>${author.nationality}</td>
-                   <td>${author.dateofbirth}</td>
-                   <td>${author.dateofdeath}</td>
-                 </tr>
-               `;
-        }
-      }
-
-      async function fetchAuthors() {
-        const response = await fetch('api/authors');
-        const data = await response.json();
-        renderAuthors(data);
-      }
-
-      fetchAuthors();
     </script>
   </body>
 </html>

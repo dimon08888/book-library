@@ -19,6 +19,10 @@ body {
   align-items: center;
 }
 
+.hidden {
+  display: none;
+}
+
 legend {
   margin: 0 auto;
   color: #fff;
@@ -74,7 +78,9 @@ table {
 th {
   background: #14cc95;
   color: #fff;
-  text-shadow: 0 2px 2px #2d2020;
+}
+
+th:not(.sortable) {
   padding: 10px 20px;
 }
 
@@ -110,10 +116,10 @@ td {
   height: 50px;
   width: 50px;
   margin-top: 150px;
-  border-left: 5px solid greenyellow;
-  border-bottom: 5px solid greenyellow;
-  border-right: 5px solid greenyellow;
-  border-top: 5px solid transparent;
+
+  border: 5px solid greenyellow;
+  border-top-color: transparent;
+
   border-radius: 50%;
   animation: spinner 1s linear infinite;
 }
@@ -124,5 +130,22 @@ td {
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+.sortable {
+  position: relative;
+}
+
+.sort-options {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+
+  & > button {
+    cursor: pointer;
+    border-radius: 5px;
+    padding: 5px 8px;
   }
 }

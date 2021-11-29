@@ -17,20 +17,47 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 
+// api/books?ordering=name
+// api/google?q=animals&ordering=age
+
 app.get('/api/books', async (req, res) => {
+  let { ordering = 'id' } = req.query;
+  let direction = 'ASC';
+
   // if (Math.random() < 0.25) {
   //   res
   //     .status(429)
   //     .send({ message: 'You are only allowed to send 60 requests per day.' });
   // } else {
-  const result = await pool.query('SELECT * FROM books ORDER BY id');
+
+  // ordering=name
+  // ordering=-name
+
+  if ((ordering as string)[0] === '-') {
+    direction = 'DESC';
+    ordering = (ordering as string).slice(1);
+  }
+
+  const orderingFields = ['id', 'name', 'author', 'genre', 'year'];
+
+  if (!orderingFields.includes(ordering as string)) {
+    return res.status(400).send({
+      ordering: [
+        `This value is invalid. Valid options are: ${orderingFields.join(', ')}.`,
+      ],
+    });
+  }
+
+  const result = await pool.query(
+    `SELECT * FROM books ORDER BY ${ordering} ${direction}`,
+  ); //! NEVER DO THIS. SQL INJECTION ATTACK.
+
   // /api/books?ordering=name -> ORDER BY name ASC
   // /api/books?ordering=-name -> ORDER BY name DESC
 
   // ORDER BY field ASC
   // ORDER BY field DESC
   res.send(result.rows);
-  // }
 });
 
 app.post('/api/books', async (req, res) => {
@@ -130,3 +157,17 @@ app.delete('/api/authors/:id', async (req, res) => {
 });
 
 app.listen(5000);
+
+// GET
+// https://google.com/search?q=dogs&locale=RU7
+// req.query {
+//   q: 'dogs
+//   locale: 'ru7'
+// }
+
+// https - protocol.
+// google.com - host.
+// search - pathname.
+// q=cats - query string.
+// q - query string parameter.
+// cats - query string value.

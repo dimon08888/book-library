@@ -50,3 +50,14 @@
     text-decoration: underline;
   }
 }
+
+.sortable-button {
+  font-size: inherit;
+  color: inherit;
+  background: none;
+  width: 100%;
+  border: none;
+  cursor: pointer;
+  text-shadow: 0 2px 2px #2d2020;
+  padding: 10px 20px;
+}
