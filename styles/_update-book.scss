@@ -1,0 +1,41 @@
+.update-book-modal {
+  display: flex;
+  padding: 10px;
+  gap: 10px;
+}
+
+// @mixin row-gap($value) {
+//   & > * + * {
+//     margin-top: $value;
+//   }
+// }
+
+.update-book-form {
+  label {
+    display: inline-block;
+  }
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: center;
+
+  // lobotomized owl.
+
+  // & > * + * {
+  //   margin-top: 10px;
+  // }
+}
+
+// .update-book-form-control:not(:last-child) {
+//   margin-bottom: 10px;
+// }
+
+.update-book-picture {
+  img {
+    border-radius: 10px;
+  }
+}
+.update-book-form-control {
+  text-align: center;
+}

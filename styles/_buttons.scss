@@ -60,4 +60,9 @@
   cursor: pointer;
   text-shadow: 0 2px 2px #2d2020;
   padding: 10px 20px;
+
+  &:hover {
+    color: #eff0ac;
+    transition: 0.5s;
+  }
 }

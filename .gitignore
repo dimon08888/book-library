@@ -2,6 +2,7 @@ node_modules
 .vscode
 .env
 .vim.md
+.backup.json
 
 # sass generated files.
 public/*.css

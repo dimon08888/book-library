@@ -74,19 +74,6 @@
           </thead>
           <tbody></tbody>
         </table>
-
-        <!-- <table class="authors">
-          <thead>
-            <tr>
-              <th><input class="checkbox-all" type="checkbox" /></th>
-              <th>Name</th>
-              <th>Nationality</th>
-              <th>Date of birth</th>
-              <th>Date of death</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table> -->
       </div>
     </div>
     <script>
@@ -144,7 +131,6 @@
       });
 
       // TODO: refactor duplicate code.
-      // TODO: sort by columns.
       // TODO: pagination.
       // TODO: filters.
 
@@ -252,31 +238,59 @@
 
         changeButtons.forEach(button => {
           button.addEventListener('click', async () => {
-            // 1. получить id
             const id = button.dataset.bookId;
-
-            // 2. получить данные по id
             const response = await fetch(`api/books/${id}`);
-
-            // 3. достать данные из запрос
             const book = await response.json();
 
-            // 4. отрисовать данные в форму для изменения
             modal.classList.remove('modal__hidden');
 
+            // create-book-modal
+            // BEM
+            // Block element
+
+            // update-book-modal
+            // update-book-picture
+            // update-book-form
+
             modalContent.innerHTML = /*html*/ `
-              <form id="add-book-form">
-                <div class="input-inner">
-                  <input required type="text" name="name" placeholder="Title" value="${book.name}" />
-                  <input required type="text" name="author" placeholder="Author" value="${book.author}" />
-                  <input required type="text" name="genre" placeholder="Genre" value="${book.genre}"/>
-                  <input required type="number" name="year" placeholder="Year" value="${book.year}"/>
-                  <button id="save-book" class="submit-button">Save</button>
+            <div class="update-book-modal">
+              <form class="update-book-form">
+                <div class="update-book-form-control">
+                  <label for="update-book-name">Title</label><br />
+                  <input required type="text" id="update-book-name" name="name" placeholder="Title"
+                    value="${book.name}" />
                 </div>
+
+                <div class="update-book-form-control">
+                  <label for="update-book-author">Author</label><br />
+                  <input required type="text" id="update-book-author" name="author" placeholder="Author"
+                    value="${book.author}" />
+                </div>
+
+                <div class="update-book-form-control">
+                  <label for="update-book-genre">Genre</label> <br />
+                  <input required type="text" id="update-book-genre" name="genre" placeholder="Genre"
+                    value="${book.genre}" />
+                </div>
+
+                <div class="update-book-form-control">
+                  <label for="update-book-year">Release Year</label> <br />
+                  <input required type="number" id="update-book-year" name="year" placeholder="Year"
+                    value="${book.year}" />
+                </div>
+
+                  <div class="update-book-form-control" style = 'text-align: center'>
+                    <button id="save-book" class="submit-button">Save</button>
+                  </div>
               </form>
+
+              <div class="update-book-picture">
+                <img src="${book.picture}" alt="Cover of ${book.name}" width="350" height="400">  
+              </div>
+            </div>
           `;
-            // 5.отправить изменения на сервер
-            const addBookForm = document.querySelector('#add-book-form');
+
+            const addBookForm = document.querySelector('.update-book-form');
             addBookForm.addEventListener('submit', async e => {
               e.preventDefault();
               const { name, author, genre, year } = addBookForm.elements;
@@ -326,7 +340,7 @@
         const checkboxBooks = document.querySelectorAll('.books .checkbox');
 
         modal.classList.remove('modal__hidden');
-        modalContent.innerHTML = `
+        modalContent.innerHTML = /*html*/ `
           <div class="modal__header">
             <p>Want delete?</p>
           </div>
@@ -350,9 +364,6 @@
           const ids = Array.from(checkboxBooks)
             .filter(el => el.checked)
             .map(el => el.dataset.bookId);
-          // <p aria-label="" data-my-attribute="some value" data-my-value="dfd"></p>
-          // el.dataset { myAttribute: 'some value', myValue: 'dfd' }
-          // el.dataset.myAttribute
 
           const query = ids.map(id => `id=${id}`).join('&');
           const response = await fetch(`api/books/?${query}`, { method: 'DELETE' });

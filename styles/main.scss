@@ -1,5 +1,6 @@
 @use 'modal';
 @use 'buttons';
+@use 'update-book';
 
 * {
   margin: 0;
@@ -43,7 +44,6 @@ fieldset {
 }
 
 input {
-  margin-left: 5px;
   border-radius: 5px;
   padding: 6px;
 }
