@@ -33,9 +33,15 @@
 
 .update-book-picture {
   img {
+    border: 2px solid #fff;
     border-radius: 10px;
   }
+  p {
+    width: 350px;
+    overflow-y: hidden;
+  }
 }
+
 .update-book-form-control {
   text-align: center;
 }

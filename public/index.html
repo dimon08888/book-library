@@ -123,8 +123,7 @@
         });
         const book = await response.json();
         if (response.status === 201) {
-          const response2 = await fetch('api/books');
-          const books = await response2.json();
+          const { books } = await getBooks();
           renderBooks(books);
           addBookForm.reset();
         }
@@ -150,8 +149,7 @@
         const orderingField = button.dataset.field;
 
         button.addEventListener('click', async () => {
-          const response = await fetch(`api/books?ordering=${orderingField}`);
-          const books = await response.json();
+          const { books } = await getBooks(orderingField);
           renderBooks(books);
 
           if (previousSortOptions) {
@@ -165,10 +163,7 @@
         toggleButton.addEventListener('click', async () => {
           orderingDirection =
             orderingDirection === ORDERING.ASC ? ORDERING.DESC : ORDERING.ASC;
-          const response = await fetch(
-            `api/books?ordering=${orderingDirection}${orderingField}`,
-          );
-          const books = await response.json();
+          const { books } = await getBooks(orderingDirection + orderingField);
           renderBooks(books);
           toggleButton.textContent = orderingDirection === ORDERING.ASC ? '↓' : '↑';
         });
@@ -177,8 +172,7 @@
           orderingDirection = ORDERING.ASC;
           toggleButton.textContent = '↓';
           sortOptions.classList.add('hidden');
-          const response = await fetch('api/books');
-          const books = await response.json();
+          const { books } = await getBooks();
           renderBooks(books);
         });
       });
@@ -190,8 +184,7 @@
         refreshButton.setAttribute('disabled', 'true');
         refreshButton.textContent = 'Loading...';
 
-        const response = await fetch('api/books');
-        const data = await response.json();
+        const { books, response } = await getBooks();
 
         refreshButton.removeAttribute('disabled');
         refreshButton.textContent = 'Refresh books';
@@ -200,24 +193,9 @@
           error.style.display = 'block';
           error.textContent = data.message;
         } else {
-          renderBooks(data);
+          renderBooks(books);
         }
       });
-
-      async function fetchBooks() {
-        const response = await fetch('api/books');
-        const data = await response.json();
-
-        spinner.style.display = 'none';
-        if (/^[45]/.test(response.status)) {
-          error.style.display = 'block';
-          error.textContent = data.message;
-        } else {
-          table.style.display = 'table';
-          error.style.display = 'none';
-          renderBooks(data);
-        }
-      }
 
       function renderBooks(books) {
         tbody.innerHTML = '';
@@ -285,7 +263,8 @@
               </form>
 
               <div class="update-book-picture">
-                <img src="${book.picture}" alt="Cover of ${book.name}" width="350" height="400">  
+                <img src="${book.picture}" alt="Cover of ${book.name}" width="350" height="400">
+                <p>${book.description}</p>
               </div>
             </div>
           `;
@@ -309,8 +288,7 @@
 
               modal.classList.add('modal__hidden');
               if (response.status === 200) {
-                const response = await fetch('api/books');
-                const books = await response.json();
+                const { books } = await getBooks();
                 renderBooks(books);
               }
             });
@@ -341,13 +319,15 @@
 
         modal.classList.remove('modal__hidden');
         modalContent.innerHTML = /*html*/ `
+        <div class="modal__delete">
           <div class="modal__header">
-            <p>Want delete?</p>
+              <p>Want delete?</p>
           </div>
           <div class="modal__footer">
             <button class="modal__button modal__cancel">Cancel</button>
             <button class="modal__button modal__confirm">Yes</button>
           </div>
+        </div>
         `;
 
         const modalConfirmButton = document.querySelector('.modal__confirm');
@@ -370,8 +350,7 @@
           deleteBooksButton.disabled = 'true';
 
           if (response.status === 204) {
-            const response2 = await fetch('api/books');
-            const books = await response2.json();
+            const { books } = await getBooks();
             renderBooks(books);
           }
 
@@ -382,7 +361,47 @@
         modalConfirmButton.addEventListener('click', onConfirmClick);
       });
 
-      fetchBooks();
+      // BAD NAME.
+
+      // getBooks({
+      //   orering: 'bla',
+      //   page: 5,
+      //   pageSize: 325,
+      // }) - GOOD
+
+      // getbooks('bla', 5, 325) - BAD
+
+      async function main() {
+        const { response, books, data } = await getBooks();
+
+        spinner.style.display = 'none';
+        if (/^[45]/.test(response.status)) {
+          error.style.display = 'block';
+          error.textContent = data.message;
+        } else {
+          table.style.display = 'table';
+          error.style.display = 'none';
+          renderBooks(books);
+        }
+      }
+      main();
+
+      /**
+       * Fetch books data from api.
+       */
+      async function getBooks(ordering = null) {
+        let url = 'api/books';
+        if (ordering) {
+          url += `?ordering=${ordering}`;
+        }
+        const response = await fetch(url);
+        const data = await response.json();
+        return {
+          response,
+          data: data,
+          books: data.results,
+        };
+      }
     </script>
   </body>
 </html>

@@ -26,7 +26,7 @@
 .delete-button {
   margin-left: 10px;
   background-image: none;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(255, 0, 0, 0.7);
 
   &:disabled {
     filter: brightness(0.5);
@@ -52,6 +52,7 @@
 }
 
 .sortable-button {
+  text-align: left;
   font-size: inherit;
   color: inherit;
   background: none;

@@ -3,6 +3,7 @@ import express from 'express';
 import { Pool } from 'pg';
 
 const app = express();
+const PORT = 5000;
 
 app.use(express.json());
 app.use('/static', express.static('public'));
@@ -17,11 +18,17 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 
-// api/books?ordering=name
-// api/google?q=animals&ordering=age
+// api/books?ordering=name&page=1
+
+// ordering=name
+// ordering=-name
+
+const PAGE = 1;
+const PAGE_SIZE = 10;
+const MAX_PAGE_SIZE = 250;
 
 app.get('/api/books', async (req, res) => {
-  let { ordering = 'id' } = req.query;
+  let { ordering = 'id', page = PAGE, pageSize = PAGE_SIZE } = req.query;
   let direction = 'ASC';
 
   // if (Math.random() < 0.25) {
@@ -29,9 +36,6 @@ app.get('/api/books', async (req, res) => {
   //     .status(429)
   //     .send({ message: 'You are only allowed to send 60 requests per day.' });
   // } else {
-
-  // ordering=name
-  // ordering=-name
 
   if ((ordering as string)[0] === '-') {
     direction = 'DESC';
@@ -48,8 +52,24 @@ app.get('/api/books', async (req, res) => {
     });
   }
 
+  let pageSizeNum = parseInt(pageSize as string);
+  if (isNaN(pageSizeNum) || pageSizeNum < 0 || pageSizeNum > MAX_PAGE_SIZE) {
+    pageSizeNum = PAGE_SIZE;
+  }
+
+  let pageNum = parseInt(page as string);
+  if (isNaN(pageNum) || pageNum < 0) {
+    pageNum = PAGE;
+  }
+
+  //
+  // 500
+  // 500 / 10 - 50 -> [1] [2] [3] [4] [5] [6]
+  const { count } = (await pool.query('SELECT COUNT(*) FROM books')).rows[0];
+
   const result = await pool.query(
-    `SELECT * FROM books ORDER BY ${ordering} ${direction}`,
+    `SELECT * FROM books ORDER BY ${ordering} ${direction} LIMIT $1 OFFSET $2`,
+    [pageSizeNum, (pageNum - 1) * pageSizeNum],
   ); //! NEVER DO THIS. SQL INJECTION ATTACK.
 
   // /api/books?ordering=name -> ORDER BY name ASC
@@ -57,7 +77,26 @@ app.get('/api/books', async (req, res) => {
 
   // ORDER BY field ASC
   // ORDER BY field DESC
-  res.send(result.rows);
+  let next: string | null = `http://127.0.0.1:${PORT}/api/books?page=${pageNum + 1}`;
+  if ((pageNum + 1) * pageSizeNum > count) {
+    next = null;
+  }
+
+  let previous: string | null = `http://127.0.0.1:${PORT}/api/books?page=${pageNum - 1}`;
+  if (pageNum - 1 < 0) {
+    previous = null;
+  }
+
+  // if ((pageNum - 1) * pageSizeNum > count) {
+  //   previous = null;
+  // }
+
+  res.send({
+    count: Number(count),
+    next: next,
+    previous: previous,
+    results: result.rows,
+  });
 });
 
 app.post('/api/books', async (req, res) => {
@@ -156,7 +195,7 @@ app.delete('/api/authors/:id', async (req, res) => {
   res.status(204).send();
 });
 
-app.listen(5000);
+app.listen(PORT);
 
 // GET
 // https://google.com/search?q=dogs&locale=RU7
