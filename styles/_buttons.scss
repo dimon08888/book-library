@@ -67,3 +67,21 @@
     transition: 0.5s;
   }
 }
+
+.pagination {
+  margin-top: 10px;
+}
+
+.pagination-btn {
+  padding: 10px 10px;
+  cursor: pointer;
+  background: #fff;
+
+  &:hover {
+    background: grey;
+  }
+
+  &.active {
+    background: blue;
+  }
+}

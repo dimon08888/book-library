@@ -35,45 +35,47 @@
             </div>
           </form>
         </fieldset>
-
-        <table class="books">
-          <thead>
-            <tr>
-              <th><input class="checkbox-all" type="checkbox" /></th>
-              <th class="sortable">
-                <button class="sortable-button" data-field="name">
-                  Title of the book
-                </button>
-                <div class="sort-options hidden">
-                  <button class="sort-remove">↕</button>
-                  <button class="sort-toggle">↓</button>
-                </div>
-              </th>
-              <th class="sortable">
-                <button class="sortable-button" data-field="author">Author</button>
-                <div class="sort-options hidden">
-                  <button class="sort-remove">↕</button>
-                  <button class="sort-toggle">↓</button>
-                </div>
-              </th>
-              <th class="sortable">
-                <button class="sortable-button" data-field="genre">Genre</button>
-                <div class="sort-options hidden">
-                  <button class="sort-remove">↕</button>
-                  <button class="sort-toggle">↓</button>
-                </div>
-              </th>
-              <th class="sortable">
-                <button class="sortable-button" data-field="year">Release Year</button>
-                <div class="sort-options hidden">
-                  <button class="sort-remove">↕</button>
-                  <button class="sort-toggle">↓</button>
-                </div>
-              </th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+        <div class="table-wrapper">
+          <table class="books">
+            <thead>
+              <tr>
+                <th><input class="checkbox-all" type="checkbox" /></th>
+                <th class="sortable">
+                  <button class="sortable-button" data-field="name">
+                    Title of the book
+                  </button>
+                  <div class="sort-options hidden">
+                    <button class="sort-remove">↕</button>
+                    <button class="sort-toggle">↓</button>
+                  </div>
+                </th>
+                <th class="sortable">
+                  <button class="sortable-button" data-field="author">Author</button>
+                  <div class="sort-options hidden">
+                    <button class="sort-remove">↕</button>
+                    <button class="sort-toggle">↓</button>
+                  </div>
+                </th>
+                <th class="sortable">
+                  <button class="sortable-button" data-field="genre">Genre</button>
+                  <div class="sort-options hidden">
+                    <button class="sort-remove">↕</button>
+                    <button class="sort-toggle">↓</button>
+                  </div>
+                </th>
+                <th class="sortable">
+                  <button class="sortable-button" data-field="year">Release Year</button>
+                  <div class="sort-options hidden">
+                    <button class="sort-remove">↕</button>
+                    <button class="sort-toggle">↓</button>
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div class="pagination"></div>
+        </div>
       </div>
     </div>
     <script>
@@ -93,6 +95,7 @@
       const modal = document.querySelector('.modal');
       const modalContent = document.querySelector('.modal__content');
       const modalOverlay = document.querySelector('.modal__overlay');
+      const pagination = document.querySelector('.pagination');
 
       modalOverlay.addEventListener('click', () => {
         modal.classList.add('modal__hidden');
@@ -123,22 +126,32 @@
         });
         const book = await response.json();
         if (response.status === 201) {
-          const { books } = await getBooks();
-          renderBooks(books);
+          const { data } = await getBooks();
+          renderBooks(data);
           addBookForm.reset();
         }
       });
 
+      // TODO: add book modal.
+      // TODO: style pagination buttons.
+      // TODO: add search input.
+      // TODO: add genre filter panel.
+
+      // TODO: pagination many pages, ..., do not show all buttons.
+      // TODO: search by book name, author name, genre, year.
+      // TODO: filter by genre
       // TODO: refactor duplicate code.
-      // TODO: pagination.
-      // TODO: filters.
 
       const ORDERING = {
         ASC: '',
         DESC: '-',
       };
 
+      let activePage = 1;
+      const pageSize = 9;
       let orderingDirection = ORDERING.ASC;
+      let orderingField = 'id';
+
       let previousSortOptions = null;
 
       sortables.forEach(th => {
@@ -146,11 +159,13 @@
         const sortOptions = th.querySelector('.sort-options');
         const removeButton = th.querySelector('.sort-remove');
         const toggleButton = th.querySelector('.sort-toggle');
-        const orderingField = button.dataset.field;
+        // const orderingField = button.dataset.field;
 
         button.addEventListener('click', async () => {
-          const { books } = await getBooks(orderingField);
-          renderBooks(books);
+          orderingField = button.dataset.field;
+
+          const { data } = await getBooks();
+          renderBooks(data);
 
           if (previousSortOptions) {
             previousSortOptions.classList.add('hidden');
@@ -163,17 +178,22 @@
         toggleButton.addEventListener('click', async () => {
           orderingDirection =
             orderingDirection === ORDERING.ASC ? ORDERING.DESC : ORDERING.ASC;
-          const { books } = await getBooks(orderingDirection + orderingField);
-          renderBooks(books);
+
+          const { data } = await getBooks();
+          renderBooks(data);
+
           toggleButton.textContent = orderingDirection === ORDERING.ASC ? '↓' : '↑';
         });
 
         removeButton.addEventListener('click', async () => {
           orderingDirection = ORDERING.ASC;
+          orderingField = 'id';
+
           toggleButton.textContent = '↓';
           sortOptions.classList.add('hidden');
-          const { books } = await getBooks();
-          renderBooks(books);
+
+          const { data } = await getBooks();
+          renderBooks(data);
         });
       });
       // click
@@ -184,7 +204,7 @@
         refreshButton.setAttribute('disabled', 'true');
         refreshButton.textContent = 'Loading...';
 
-        const { books, response } = await getBooks();
+        const { data, books, response } = await getBooks();
 
         refreshButton.removeAttribute('disabled');
         refreshButton.textContent = 'Refresh books';
@@ -193,14 +213,16 @@
           error.style.display = 'block';
           error.textContent = data.message;
         } else {
-          renderBooks(books);
+          renderBooks(data);
         }
       });
 
-      function renderBooks(books) {
+      function renderBooks(data) {
+        // data
+        console.log('data.results :>> ', data.results);
         tbody.innerHTML = '';
 
-        for (const book of books) {
+        for (const book of data.results) {
           tbody.innerHTML += /*html*/ `
                  <tr>
                    <td><input class="checkbox" type="checkbox" data-book-id="${book.id}"></td>
@@ -211,6 +233,8 @@
                  </tr>
                `;
         }
+
+        renderPagination(data.count, pageSize);
         const changeButtons = document.querySelectorAll('.books .change-button');
         const checkboxBooks = document.querySelectorAll('.books .checkbox');
 
@@ -288,8 +312,8 @@
 
               modal.classList.add('modal__hidden');
               if (response.status === 200) {
-                const { books } = await getBooks();
-                renderBooks(books);
+                const { data } = await getBooks();
+                renderBooks(data);
               }
             });
           });
@@ -350,8 +374,8 @@
           deleteBooksButton.disabled = 'true';
 
           if (response.status === 204) {
-            const { books } = await getBooks();
-            renderBooks(books);
+            const { data } = await getBooks();
+            renderBooks(data);
           }
 
           onCancelClick();
@@ -366,7 +390,8 @@
       // getBooks({
       //   orering: 'bla',
       //   page: 5,
-      //   pageSize: 325,
+      //
+      // pageSize: 325,
       // }) - GOOD
 
       // getbooks('bla', 5, 325) - BAD
@@ -381,7 +406,7 @@
         } else {
           table.style.display = 'table';
           error.style.display = 'none';
-          renderBooks(books);
+          renderBooks(data);
         }
       }
       main();
@@ -389,18 +414,52 @@
       /**
        * Fetch books data from api.
        */
-      async function getBooks(ordering = null) {
-        let url = 'api/books';
-        if (ordering) {
-          url += `?ordering=${ordering}`;
-        }
+      async function getBooks() {
+        const params = new URLSearchParams({
+          page: activePage,
+          ordering: orderingDirection + orderingField,
+          pageSize,
+        });
+
+        let url = `api/books?${params}`;
+
+        // let url = `api/books?page=${activePage}&ordering=${
+        //   orderingDirection + orderingField
+        // }`;
+
+        // if (orderingField) {
+        //   url += `&ordering=${ordering}`;
+        // }
+
         const response = await fetch(url);
         const data = await response.json();
+
         return {
           response,
           data: data,
           books: data.results,
         };
+      }
+
+      function renderPagination(count, pageSize) {
+        pagination.innerHTML = '';
+        const totalPages = count / pageSize;
+        console.log({ activePage });
+        for (let i = 0; i < totalPages; i++) {
+          pagination.innerHTML += `
+          <button class="pagination-btn ${activePage === i + 1 ? 'active' : ''}">${
+            i + 1
+          }</button>
+          `;
+        }
+        const buttons = pagination.querySelectorAll('.pagination-btn');
+        buttons.forEach(button => {
+          button.addEventListener('click', async () => {
+            activePage = Number(button.textContent);
+            const { data } = await getBooks();
+            renderBooks(data);
+          });
+        });
       }
     </script>
   </body>
