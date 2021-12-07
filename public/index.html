@@ -14,6 +14,7 @@
       <div class="error" style="display: none"></div>
       <div class="table" style="display: none">
         <div class="button-inner">
+          <button id="create-book" class="create-book-btn">Create book</button>
           <button id="refresh" class="gradient-button">Refresh books</button>
           <button id="delete-books" class="delete-button" disabled>Delete book</button>
         </div>
@@ -23,7 +24,19 @@
           <div class="modal__content"></div>
         </div>
 
-        <fieldset>
+        <div id="right-panel">
+          <span><b>{</b></span>
+          <div id="hidden-panel">
+            <h4>Sort books</h4>
+            <div class="hidden-panel-input-wrapper">
+              <input type="checkbox" />
+              <input type="checkbox" />
+              <input type="checkbox" />
+            </div>
+          </div>
+        </div>
+
+        <fieldset class="fieldset-remove">
           <legend>Add new book</legend>
           <form id="add-book-form">
             <div class="input-inner">
@@ -31,19 +44,21 @@
               <input required type="text" name="author" placeholder="Author" />
               <input required type="text" name="genre" placeholder="Genre" />
               <input required type="number" name="year" placeholder="Year" />
-              <button class="submit-button">Create book</button>
+              <button class="submit-button">Add a new book</button>
             </div>
           </form>
         </fieldset>
+        <div class="search-input">
+          <input type="search" placeholder="Search book" />
+          <button type="submit">Search</button>
+        </div>
         <div class="table-wrapper">
           <table class="books">
             <thead>
               <tr>
                 <th><input class="checkbox-all" type="checkbox" /></th>
                 <th class="sortable">
-                  <button class="sortable-button" data-field="name">
-                    Title of the book
-                  </button>
+                  <button class="sortable-button" data-field="name">Title Book</button>
                   <div class="sort-options hidden">
                     <button class="sort-remove">↕</button>
                     <button class="sort-toggle">↓</button>
@@ -86,6 +101,8 @@
       const table = document.querySelector('.table');
       const tbody = document.querySelector('.books tbody');
       const tbodyAuthors = document.querySelector('.authors tbody');
+      const createBook = document.querySelector('#create-book');
+      const fieldsetWrapper = document.querySelector('.fieldset-remove');
 
       const error = document.querySelector('.error');
       const addBookForm = document.querySelector('#add-book-form');
@@ -97,16 +114,14 @@
       const modalOverlay = document.querySelector('.modal__overlay');
       const pagination = document.querySelector('.pagination');
 
+      createBook.addEventListener('click', () => {
+        createBook.classList.toggle('create-book-btn-active');
+        fieldsetWrapper.classList.toggle('fieldset-remove');
+      });
+
       modalOverlay.addEventListener('click', () => {
         modal.classList.add('modal__hidden');
       });
-
-      // 0 - start of the line (NORMAL, first character)
-      // ^ - start of the line (NORMAL, first non whitespace character).
-      // $ - end of the line (NORMAL).
-      // gm - middle of the line (NORMAL).
-      // I - start of the line (INSERT).
-      // A - end of  the line (INSERT).
 
       addBookForm.addEventListener('submit', async e => {
         e.preventDefault();
@@ -318,9 +333,6 @@
             });
           });
         });
-        // show modal
-        // with form filled with book details.
-        // and buttons to cancel or update that book.
 
         checkboxBooks.forEach(el =>
           el.addEventListener('change', () => {

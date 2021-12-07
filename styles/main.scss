@@ -1,6 +1,7 @@
 @use 'modal';
 @use 'buttons';
 @use 'update-book';
+@use 'hidden-menu';
 
 * {
   margin: 0;
@@ -28,13 +29,45 @@ legend {
   font-size: 1.25rem;
 }
 
+.fieldset-remove {
+  display: none;
+}
+
 fieldset {
   display: flex;
   justify-content: space-around;
+  border-radius: 10px;
   background-color: rgba(0, 0, 0, 0.5);
   margin-top: 10px;
   padding: 10px 40px;
   padding-bottom: 17px;
+}
+
+.search-input {
+  position: relative;
+  top: 10px;
+  max-width: 400px;
+  margin: 0 auto;
+  input {
+    width: 100%;
+    height: 42px;
+    padding-left: 10px;
+    border: 1px solid #7ba7ab;
+    background: #eff0ac;
+  }
+  button {
+    position: absolute;
+    top: 0;
+    right: 0px;
+    padding: 11px;
+    background: #14cc95;
+    border-radius: 0 5px 5px 0;
+    cursor: pointer;
+    &:hover {
+      background-color: rgb(143, 143, 25);
+      transition: 0.5s;
+    }
+  }
 }
 
 input {
