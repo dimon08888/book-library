@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="/static/main.css" />
     <!-- <script src="/static/index.js" defer></script> -->
-    <title>Document</title>
+    <title>Library</title>
   </head>
   <body>
     <div class="container">
@@ -397,17 +397,6 @@
         modalConfirmButton.addEventListener('click', onConfirmClick);
       });
 
-      // BAD NAME.
-
-      // getBooks({
-      //   orering: 'bla',
-      //   page: 5,
-      //
-      // pageSize: 325,
-      // }) - GOOD
-
-      // getbooks('bla', 5, 325) - BAD
-
       async function main() {
         const { response, books, data } = await getBooks();
 
@@ -423,9 +412,6 @@
       }
       main();
 
-      /**
-       * Fetch books data from api.
-       */
       async function getBooks() {
         const params = new URLSearchParams({
           page: activePage,
@@ -434,14 +420,6 @@
         });
 
         let url = `api/books?${params}`;
-
-        // let url = `api/books?page=${activePage}&ordering=${
-        //   orderingDirection + orderingField
-        // }`;
-
-        // if (orderingField) {
-        //   url += `&ordering=${ordering}`;
-        // }
 
         const response = await fetch(url);
         const data = await response.json();
@@ -453,17 +431,57 @@
         };
       }
 
+      const paginate = (currentPage, nrOfPages) => {
+        let delta = 2,
+          range = [],
+          rangeWithDots = [],
+          l;
+
+        range.push(1);
+
+        if (nrOfPages <= 1) {
+          return range;
+        }
+
+        for (let i = currentPage - delta; i <= currentPage + delta; i++) {
+          if (i < nrOfPages && i > 1) {
+            range.push(i);
+          }
+        }
+        range.push(nrOfPages);
+
+        for (let i of range) {
+          if (l) {
+            if (i - l === 2) {
+              rangeWithDots.push(l + 1);
+            } else if (i - l !== 1) {
+              rangeWithDots.push('...');
+            }
+          }
+          rangeWithDots.push(i);
+          l = i;
+        }
+
+        return rangeWithDots;
+      };
+
       function renderPagination(count, pageSize) {
         pagination.innerHTML = '';
-        const totalPages = count / pageSize;
+        const totalPages = Math.floor(count / pageSize);
         console.log({ activePage });
-        for (let i = 0; i < totalPages; i++) {
-          pagination.innerHTML += `
-          <button class="pagination-btn ${activePage === i + 1 ? 'active' : ''}">${
-            i + 1
-          }</button>
-          `;
-        }
+
+        const pages = paginate(activePage, totalPages);
+
+        pages.forEach(i => {
+          if (typeof i === 'string') {
+            pagination.innerHTML += '<span>...</span>';
+          } else {
+            pagination.innerHTML += `<button class="pagination-btn ${
+              activePage === i ? 'active' : ''
+            }">${i}</button> `;
+          }
+        });
+
         const buttons = pagination.querySelectorAll('.pagination-btn');
         buttons.forEach(button => {
           button.addEventListener('click', async () => {

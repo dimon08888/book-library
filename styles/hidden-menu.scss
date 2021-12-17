@@ -3,20 +3,19 @@
   justify-content: center;
   align-items: center;
   position: fixed;
-  top: 100px;
+  top: 144px;
   right: 0;
   background: #14cc95;
   min-width: 30px;
   min-height: 40px;
   color: #fff;
-  cursor: pointer;
   transition: 0.5s;
   border-radius: 5px;
 }
 
 #hidden-panel {
   position: fixed;
-  top: 100px;
+  top: 144px;
   right: -200px;
   background: #eff0ac;
   color: #000;
