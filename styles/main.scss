@@ -1,7 +1,6 @@
 @use 'modal';
 @use 'buttons';
 @use 'update-book';
-@use 'hidden-menu';
 
 * {
   margin: 0;
@@ -109,6 +108,9 @@ th {
 th:not(.sortable) {
   padding: 10px 20px;
 }
+th:not(:first-child) {
+  min-width: 180px;
+}
 
 th,
 td {
@@ -139,7 +141,7 @@ td {
   justify-content: center;
 }
 
-.change-button .spinner {
+.spinner {
   height: 50px;
   width: 50px;
   margin-top: 150px;
@@ -170,9 +172,7 @@ td {
 .sort-options {
   position: absolute;
   right: 5px;
-  top: 50%;
-  transform: translateY(-50%);
-
+  top: 5px;
   & > button {
     cursor: pointer;
     border-radius: 5px;
@@ -187,4 +187,13 @@ td {
 
 .table-wrapper {
   margin: 0 auto;
+}
+
+.not-found {
+  padding: 20px 20px;
+  background: #eff0ac;
+  text-align: center;
+  color: tomato;
+  font-weight: 700;
+  font-size: 2rem;
 }

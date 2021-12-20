@@ -65,11 +65,12 @@
 }
 
 .sortable-button {
+  position: relative;
+  width: 100%;
   text-align: left;
   font-size: inherit;
   color: inherit;
   background: none;
-  width: 100%;
   border: none;
   cursor: pointer;
   text-shadow: 0 2px 2px #2d2020;
@@ -83,6 +84,12 @@
 
 .pagination {
   margin-top: 10px;
+
+  &:not(span) {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 }
 
 .pagination-btn {
@@ -99,4 +106,10 @@
   &.active {
     background: #14cc95;
   }
+}
+
+.span-pagination {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #eff0ac;
 }

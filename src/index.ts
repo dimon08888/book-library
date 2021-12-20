@@ -27,8 +27,10 @@ const PAGE = 1;
 const PAGE_SIZE = 10;
 const MAX_PAGE_SIZE = 250;
 
+// /api/books?q=book 25
+
 app.get('/api/books', async (req, res) => {
-  let { ordering = 'id', page = PAGE, pageSize = PAGE_SIZE } = req.query;
+  let { ordering = 'id', page = PAGE, pageSize = PAGE_SIZE, q } = req.query;
   let direction = 'ASC';
 
   // if (Math.random() < 0.25) {
@@ -62,15 +64,33 @@ app.get('/api/books', async (req, res) => {
     pageNum = PAGE;
   }
 
-  //
-  // 500
-  // 500 / 10 - 50 -> [1] [2] [3] [4] [5] [6]
-  const { count } = (await pool.query('SELECT COUNT(*) FROM books')).rows[0];
-
-  const result = await pool.query(
-    `SELECT * FROM books ORDER BY ${ordering} ${direction} LIMIT $1 OFFSET $2`,
-    [pageSizeNum, (pageNum - 1) * pageSizeNum],
-  ); //! NEVER DO THIS. SQL INJECTION ATTACK.
+  let result;
+  let count;
+  if (q) {
+    // 'man invisible' -> [ 'man', 'invisible' ] -> ['UPPER(name) LIKE UPPER(man)', ] .join='AND'
+    // const f = String(q)
+    //   .split(/\s+/)
+    //   .map(word => `UPPER(name) LIKE UPPER('%${word}%')`)
+    //   .join(' AND ');
+    // console.log('f :>> ', f);
+    // WHERE (UPPER(name) LIKE UPPER(man) AND UPPER(name) LIKE UPPER(invisible))
+    result = await pool.query(
+      `SELECT * FROM books WHERE UPPER(name) LIKE UPPER($1) OR UPPER(author) LIKE UPPER($1) OR UPPER(genre) LIKE UPPER($1) ORDER BY ${ordering} ${direction} LIMIT $2 OFFSET $3`,
+      ['%' + q + '%', pageSizeNum, (pageNum - 1) * pageSizeNum],
+    );
+    count = (
+      await pool.query(
+        'SELECT COUNT(*) FROM books WHERE UPPER(name) LIKE UPPER($1) OR UPPER(author) LIKE UPPER($1) OR UPPER(genre) LIKE UPPER($1)',
+        ['%' + q + '%'],
+      )
+    ).rows[0].count;
+  } else {
+    result = await pool.query(
+      `SELECT * FROM books ORDER BY ${ordering} ${direction} LIMIT $1 OFFSET $2`,
+      [pageSizeNum, (pageNum - 1) * pageSizeNum],
+    );
+    count = (await pool.query('SELECT COUNT(*) FROM books')).rows[0].count;
+  }
 
   // /api/books?ordering=name -> ORDER BY name ASC
   // /api/books?ordering=-name -> ORDER BY name DESC
